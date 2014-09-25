@@ -1,15 +1,15 @@
-## -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 <html>
 <head>
     <style type="text/css">
         ${css}
 
-.list_main_table {
+.list_invoice_table {
     border:thin solid #E3E4EA;
     text-align:center;
     border-collapse: collapse;
 }
-.list_main_table th {
+.list_invoice_table th {
     background-color: #EEEEEE;
     border: thin solid #000000;
     text-align:center;
@@ -35,39 +35,42 @@ div.formatted_note {
     text-align:left;
     padding-left:10px;
     font-size:11;
-}
-
-
-.list_bank_table {
-    text-align:center;
-    border-collapse: collapse;
-    page-break-inside: avoid;
-    display:table;
-}
-
-.act_as_row {
-   display:table-row;
-}
-.list_bank_table .act_as_thead {
-    background-color: #EEEEEE;
-    text-align:left;
-    font-size:12;
-    font-weight:bold;
     padding-right:3px;
     padding-left:3px;
-    white-space:nowrap;
-    background-clip:border-box;
-    display:table-cell;
 }
-.list_bank_table .act_as_cell {
+.list_invoice_table td {
+    border-top : thin solid #EEEEEE;
     text-align:left;
     font-size:12;
     padding-right:3px;
     padding-left:3px;
     padding-top:3px;
     padding-bottom:3px;
-    white-space:nowrap;
-    display:table-cell;
+}
+.list_invoice_table thead {
+    display:table-header-group;
+}
+
+
+.list_bank_table {
+    text-align:center;
+    border-collapse: collapse;
+}
+.list_bank_table th {
+    background-color: #EEEEEE;
+    text-align:left;
+    font-size:12;
+    font-weight:bold;
+    padding-right:3px;
+    padding-left:3px;
+}
+.list_bank_table td {
+    text-align:left;
+    font-size:12;
+    padding-right:3px;
+    padding-left:3px;
+    padding-top:3px;
+    padding-bottom:3px;
 }
 
 
@@ -89,8 +92,9 @@ div.formatted_note {
     text-align:center;
     border-collapse: collapse;
 }
+
 .list_total_table td {
-    border-top : thin solid #EEEEEE;
+    border: thin solid #EEEEEE;
     text-align:left;
     font-size:12;
     padding-right:3px;
@@ -99,11 +103,9 @@ div.formatted_note {
     padding-bottom:3px;
 }
 .list_total_table th {
-    background-color: #EEEEEE;
-    border: thin solid #000000;
+    border: thin solid #EEEEEE;
     text-align:center;
     font-size:12;
-    font-weight:bold;
     padding-right:3px
     padding-left:3px
 }
@@ -123,6 +125,11 @@ div.formatted_note {
 
 .std_text {
     font-size:12;
+}
+
+td.amount
+    white-space: nowrap;
+    text-align: right;
 }
 
 tfoot.totals tr:first-child td{
@@ -159,12 +166,6 @@ td.date {
 td.vat {
     white-space: nowrap;
 }
-.address .recipient {
-    font-size: 12px;
-    margin-left: 350px;
-    margin-right: 120px;
-    float: right;
-}
 
 .nobreak {
      page-break-inside: avoid;
@@ -183,46 +184,33 @@ td.vat {
         return text.replace('\n', '<br />')
     %>
 
-    <%def name="address(partner, commercial_partner=None)">
-        <%doc>
-            XXX add a helper for address in report_webkit module as this won't be suported in v8.0
-        </%doc>
-        <% company_partner = False %>
-        %if commercial_partner:
-            %if commercial_partner.id != partner.id:
-                <% company_partner = commercial_partner %>
-            %endif
-        %elif partner.parent_id:
-            <% company_partner = partner.parent_id %>
-        %endif
-
-        %if company_partner:
-            <tr><td class="name">${company_partner.name or ''}</td></tr>
-            <tr><td>${partner.title and partner.title.name or ''} ${partner.name}</td></tr>
-            <% address_lines = partner.contact_address.split("\n")[1:] %>
-        %else:
-            <tr><td class="name">${partner.title and partner.title.name or ''} ${partner.name}</td></tr>
-            <% address_lines = partner.contact_address.split("\n") %>
-        %endif
-        %for part in address_lines:
-            % if part:
-                <tr><td>${part}</td></tr>
-            % endif
-        %endfor
-    </%def>
-
     %for inv in objects:
     <% setLang(inv.partner_id.lang) %>
+    <br />
     <div class="address">
-      <table class="recipient">
-        %if hasattr(inv, 'commercial_partner_id'):
-        ${address(partner=inv.partner_id, commercial_partner=inv.commercial_partner_id)}
-        %else:
-        ${address(partner=inv.partner_id)}
-        %endif
-      </table>
+        <table class="recipient">
+	    %if inv.partner_id.parent_id:
+	    <tr><td class="name">${inv.partner_id.parent_id and inv.partner_id.parent_id.name or ''}</td></tr>
+	    %endif
+            <tr><td class="name">${inv.partner_id.title and inv.partner_id.title.name or ''} ${inv.partner_id.name }</td></tr>
+            <tr><td>${inv.partner_id.street or ''}</td></tr>
+            <tr><td>${inv.partner_id.street2 or ''}</td></tr>
+            <tr><td>${inv.partner_id.zip or ''} ${inv.partner_id.city or ''}</td></tr>
+            %if inv.partner_id.country_id:
+            <tr><td>${inv.partner_id.country_id.name or ''} </td></tr>
+            %endif
+	    %if inv.partner_id.vat:
+            <tr><td>${inv.partner_id.lang=='fr_FR' and u"N° TVA :" or "VAT number:"} ${inv.partner_id.vat or ''}</td></tr>
+            %endif
+        </table>
     </div>
-    <h1 style="clear: both; padding-top: 20px;">
+    <div>
+
+    	%if inv.note1 :
+        <p class="std_text"> ${inv.note1 | carriage_returns} </p>
+	%endif
+    </div>
+    <h1 style="clear: both; padding-top: 20px; font-size: 22px">
         %if inv.type == 'out_invoice' and inv.state == 'proforma2':
             ${_("PRO-FORMA")}
         %elif inv.type == 'out_invoice' and inv.state == 'draft':
@@ -239,88 +227,76 @@ td.vat {
             ${_("Supplier Refund")} ${inv.number or ''}
         %endif
     </h1>
-    <h3  style="clear: both; padding-top: 20px;">
-        ${_("Subject : ")} ${inv.name or ''}
-    </h3>
 
-    <table class="basic_table" width="100%">
+    <table class="basic_table" width="100%" style="margin-top: 20px; align: center">
         <tr>
-            <th class="date">${_("Invoice Date")}</td>
-            <th class="date">${_("Due Date")}</td>
-            <th style="text-align:center;width:120px;">${_("Responsible")}</td>
-            <th style="text-align:center">${_("Payment Term")}</td>
-            <th style="text-align:center">${_("Our reference")}</td>
-            %if inv.reference and inv.reference != inv.name:
-                <th style="text-align:center">${_("Your reference")}</td>
-            %endif
+            <th class="date">${inv.partner_id.lang=='fr_FR' and u"Date de facture" or "Invoice Date"}</td>
+            <th class="date">${inv.partner_id.lang=='fr_FR' and u"Conditions de paiement" or "Payment Term"}</td>
+	    <th class="date">${inv.partner_id.lang=='fr_FR' and u"Date d'échéance" or "Due Date"}</td>
+	    <th class="date">${inv.partner_id.lang=='fr_FR' and u"Réf. commande client" or "Customer PO ref."}</td>
         </tr>
         <tr>
             <td class="date">${formatLang(inv.date_invoice, date=True)}</td>
+            <td class="date">${inv.payment_term.name or ''}</td>
             <td class="date">${formatLang(inv.date_due, date=True)}</td>
-            <td style="text-align:center;width:120px;">${inv.user_id and inv.user_id.name or ''}</td>
-            <td style="text-align:center">${inv.payment_term and inv.payment_term.note or ''}</td>
-            <td style="text-align:center">${inv.origin or ''}</td>
-            %if inv.reference and inv.reference != inv.name:
-                <td style="text-align:center">${inv.reference}</td>
-            %endif
+            <td class="date">${inv.origin or ''}</td>
         </tr>
     </table>
 
-    <div>
-    %if inv.note1:
-        <p class="std_text"> ${inv.note1 | n} </p>
-    %endif
-    </div>
+   <%
+   has_discount = False
+   for line in inv.invoice_line:
+      if line.discount > 0:
+          has_discount = True
+   %>
 
-    <table class="list_main_table" width="100%" style="margin-top: 20px;">
+    <table class="list_invoice_table" width="100%" style="margin-top: 20px;align: center">
         <thead>
             <tr>
                 <th>${_("Description")}</th>
-                <th>${_("Qty")}</th>
-                <th>${_("UoM")}</th>
+                <th>${inv.partner_id.lang=='fr_FR' and u"Qté" or "Qty"}</th>
+                <th>${inv.partner_id.lang=='fr_FR' and u"Unité" or "Unit"}</th>
                 <th>${_("Unit Price")}</th>
-                <th>${_("Taxes")}</th>
-                <th>${_("Disc.(%)")}</th>
+            %if has_discount:
+                <th>${inv.partner_id.lang=='fr_FR' and u"Remise" or "Discount"}</th>
+            %endif
                 <th>${_("Net Sub Total")}</th>
             </tr>
         </thead>
         <tbody>
         %for line in inv.invoice_line :
-            <tr>
-                <td class="align_top"><div class="nobreak">${line.name.replace('\n','<br/>') or '' | n}
-                    %if line.formatted_note:
-                        <br />
-                        <div class="formatted_note">${line.formatted_note| n}</div>
-                    %endif
-                </div></td>
-                <td class="amount align_top">${formatLang(line.quantity or 0.0,digits=get_digits(dp='Account'))}</td>
-                <td class="amount align_top">${line.uos_id and line.uos_id.name or ''}</td>
-                <td class="amount align_top">${formatLang(line.price_unit)}</td>
-                <td class="align_top" style="font-style:italic; font-size: 10;text-align:center;" >${ ', '.join([ tax.description or tax.name for tax in line.invoice_line_tax_id ])}</td>
-                <td class="amount align_top" width="10%">${line.discount and formatLang(line.discount, digits=get_digits(dp='Account')) or ''} ${line.discount and '%' or ''}</td>
-                <td class="amount align_top" width="13%">${formatLang(line.price_subtotal, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}</td>
+            <tr >
+                <td>${line.name | carriage_returns}</td>
+                <td class="amount">${formatLang(line.quantity or 0.0,digits=get_digits(dp='Account'))}</td>
+                <td class="amount" style="text-align: center">${line.uos_id and line.uos_id.name or ''}</td>
+                <td class="amount">${formatLang(line.price_unit)}</td>
+		%if has_discount:
+                <td class="amount" width="10%">${line.discount and formatLang(line.discount, digits=get_digits(dp='Account')) or ''} ${line.discount and '%' or ''}</td>
+		%endif
+                <td class="amount" width="13%">${formatLang(line.price_subtotal, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}</td>
             </tr>
         %endfor
         </tbody>
+    <!-- Move the totals in a separate table, to avoid issues caused by the dynamic discount col. Alexis de Lattre 13/5/2013
         <tfoot class="totals">
             <tr>
-                <td colspan="6" style="text-align:right;border-right: thin solid  #ffffff ;border-left: thin solid  #ffffff ;">
-                    <b>${_("Net :")}</b>
+                <td colspan="5" style="text-align:right;border-right: thin solid  #ffffff ;border-left: thin solid  #ffffff ;">
+                    <b>${_("Net Total:")}</b>
                 </td>
                 <td class="amount" style="border-right: thin solid  #ffffff ;border-left: thin solid  #ffffff ;">
                     ${formatLang(inv.amount_untaxed, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}
                 </td>
             </tr>
             <tr class="no_bloc">
-                <td colspan="6" style="text-align:right; border-top: thin solid  #ffffff ; border-right: thin solid  #ffffff ;border-left: thin solid  #ffffff ;">
-                    <b>${_("Taxes:")}</b>
+                <td colspan="5" style="text-align:right; border-top: thin solid  #ffffff ; border-right: thin solid  #ffffff ;border-left: thin solid  #ffffff ;">
+                    <b>${_("Taxes :")}</b>
                 </td>
                 <td class="amount" style="border-right: thin solid  #ffffff ;border-top: thin solid  #ffffff ;border-left: thin solid  #ffffff ;">
                         ${formatLang(inv.amount_tax, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}
                 </td>
             </tr>
             <tr>
-                <td colspan="6" style="border-right: thin solid  #ffffff ;border-top: thin solid  #ffffff ;border-left: thin solid  #ffffff ;border-bottom: thin solid  #ffffff ;text-align:right;">
+                <td colspan="5" style="border-right: thin solid  #ffffff ;border-top: thin solid  #ffffff ;border-left: thin solid  #ffffff ;border-bottom: thin solid  #ffffff ;text-align:right;">
                     <b>${_("Total:")}</b>
                 </td>
                 <td class="amount" style="border-right: thin solid  #ffffff ;border-top: thin solid  #ffffff ;border-left: thin solid  #ffffff ;border-bottom: thin solid  #ffffff ;">
@@ -328,76 +304,101 @@ td.vat {
                 </td>
             </tr>
         </tfoot>
+    -->
     </table>
+
+    <table class="list_invoice_table" width="25%" align="right" style="margin-top: 10px; border-style: thin solid  #ffffff">
+        <tfoot class="totals">
+	    <tr>
+                <td style="text-align: right"><b>${inv.partner_id.lang=='fr_FR' and u"Total HT :" or "Net Total:"}</b></td>
+                <td class="amount" style="">
+                    <b>${formatLang(inv.amount_untaxed, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}</b>
+                 </td>
+             </tr>
+             <tr>
+                 <td style="text-align: right">${inv.partner_id.lang=='fr_FR' and u"Taxes :" or "Taxes:"}</td>
+                 <td class="amount" style="">
+                    ${formatLang(inv.amount_tax, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}
+                 </td>
+              </tr>
+              <tr>
+                  <td style="text-align: right"><b>${inv.partner_id.lang=='fr_FR' and u"Total TTC :" or "Total:"}</b></td>
+                  <td class="amount">
+                     <b>${formatLang(inv.amount_total, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}</b>
+                  </td>
+              </tr>
+              %if inv.amount_total - inv.residual != 0.0:
+              <tr>
+                  <td style="text-align: right">${inv.partner_id.lang=='fr_FR' and u"Déjà payé:" or "Paid:"}</td>
+                  <td class="amount">
+                    ${formatLang(inv.amount_total - inv.residual, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}
+                  </td>
+              <tr>
+                  <td style="text-align: right"><b>${inv.partner_id.lang=='fr_FR' and u"Reste à payer:" or "To Paid:"}</b></td>
+                  <td class="amount">
+                     <b>${formatLang(inv.residual, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}</b> 
+                 </td>
+              </tr>
+              %endif
+            </tfoot>
+       </table>
+
         <br/>
-    <table class="list_total_table" width="60%" >
-        <tr>
-            <th style="text-align:left;">${_("Rate")}</th>
-            <th>${_("Base")}</th>
-            <th>${_("Tax")}</th>
-        </tr>
-        %if inv.tax_line :
-        %for t in inv.tax_line :
+    	%if inv.tax_line :
+        <table class="list_total_table" style="margin-top: 30px;" width="55%" >
             <tr>
-                <td style="text-align:left;">${ t.name } </td>
-                <td class="amount">${ formatLang(t.base, digits=get_digits(dp='Account')) }</td>
-                <td class="amount">${ formatLang(t.amount, digits=get_digits(dp='Account')) }</td>
+                <th>${inv.partner_id.lang=='fr_FR' and u"Nom de la taxe" or u"Tax name"}</th>
+                <th>${_("Base")}</th>
+                <th>${_("Tax")}</th>
             </tr>
-        %endfor
-        %endif
-    </table>
+            %for t in inv.tax_line :
+                <tr>
+                    <td style="text-align:left;">${ t.name } </td>
+                    <td class="amount">${ formatLang(t.base, digits=get_digits(dp='Account')) }</td>
+                    <td class="amount">${ formatLang(t.amount, digits=get_digits(dp='Account')) }</td>
+                </tr>
+            %endfor
+        </table>
+    	%endif
         <br/>
+    	%if inv.company_id.id in (4,5,10) :
         <br/>
         <h4>
-                ${_("Thank you for your prompt payment")}
+                ${_("(*) VAT not applicable, art. 293 B of the General Tax Code - Member of a micro-enterprise tax regime")}
         </h4>
         <br/>
+    	%endif
     <%
       inv_bank = inv.partner_bank_id
+      bank_institution = inv_bank and inv_bank.bank
     %>
-    <div class="list_bank_table act_as_table" style="width:100%;" >
-      <!-- vat value are taken back from commercial id -->
-        <div class="act_as_row">
-            <div class="act_as_thead" style="width:20%;">${_("Bank")}</div>
-            <div class="act_as_cell" style="width:40%;text-align:left;">${inv_bank and inv_bank.bank_name or '-' } </div>
-            %if inv.partner_id and inv.partner_id.vat :
-            <div class="act_as_thead" style="width:20%;">${_("Customer VAT No")}</div>
-            <div class="act_as_cell" style="width:20%;">${inv.partner_id.vat or '-'}</div>
-            %else:
-            <!-- conserve table's cells widths -->
-            <div class="act_as_cell" style="width:20%;"></div>
-            <div class="act_as_cell" style="width:20%;"></div>
-            %endif
-        </div>
-        <div class="act_as_row">
-            <div class="act_as_thead" style="width:20%;">${_("Bank account")}</div>
-            <div class="act_as_cell" style="width:40%;text-align:left;">${ inv_bank and inv_bank.acc_number or '-' }</div>
-            <div class="act_as_thead" style="width:20%;">${_("Our VAT No")}</div>
-            <div class="act_as_cell" style="width:20%;" class="vat">${inv.company_id.partner_id.vat or '-'}</div>
-        </div>
-        <div class="act_as_row">
-            <div class="act_as_thead" style="width:20%;">${_("BIC")}</div>
-            <div class="act_as_cell"  style="width:40%;">${inv_bank and inv_bank.bank_bic or '-' }</div>
-        </div>
-    </div>
+    <p style="margin-top: 20px;">
+    ${inv.partner_id.lang=='fr_FR' and u"Le paiement doit être effectué sur le compte bancaire suivant :" or u"The payment must be made to the following bank account:"}
+    </p>
+        <table class="basic_table" width="50%" >
+    	%if inv_bank.state == 'rib' and inv.partner_id.lang in ['fr_FR', False]:
+            <tr>
+		<th>${("RIB")}</th>
+		<td>${inv_bank.bank_code} - ${inv_bank.office} - ${inv_bank.rib_acc_number} - ${inv_bank.key}</td>
+	    </tr>
+        %endif
+	    <tr>
+		<th>${("IBAN")}</th>
+                <td>${inv_bank.acc_number}</td>
+            </tr>
+            <tr>
+                <th>${("BIC / SWIFT")}</th>
+                <td>${inv_bank.bank_bic}</td>
+            </tr>
+          </table>
     <br/>
-    %if inv.comment:
+        %if inv.comment :
         <p class="std_text">${inv.comment | carriage_returns}</p>
-    %endif
-    %if inv.note2 :
-        <p class="std_text">${inv.note2 | n}</p>
-    %endif
-    %if inv.fiscal_position and inv.fiscal_position.note:
-        <br/>
-        <p class="std_text">
-        ${inv.fiscal_position.note | n}
-        </p>
-    %endif
-
-    %if not loop.last:
-    <p style="page-break-after:always"></p>
-    %endif
-
+        %endif
+        %if inv.note2 :
+        <p class="std_text">${inv.note2 | carriage_returns}</p>
+        %endif
+    <!--<p style="page-break-after:always"></p>-->
     %endfor
 </body>
 </html>
