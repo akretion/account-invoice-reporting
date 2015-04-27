@@ -327,14 +327,14 @@ td.vat {
                      <b>${formatLang(inv.amount_total, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}</b>
                   </td>
               </tr>
-              %if inv.amount_total - inv.residual != 0.0:
+              %if inv.amount_total - inv.residual:
               <tr>
-                  <td style="text-align: right">${inv.partner_id.lang=='fr_FR' and u"Déjà payé:" or "Paid:"}</td>
+                  <td style="text-align: right">${inv.partner_id.lang=='fr_FR' and u"Réglé :" or "Paid:"}</td>
                   <td class="amount">
                     ${formatLang(inv.amount_total - inv.residual, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}
                   </td>
               <tr>
-                  <td style="text-align: right"><b>${inv.partner_id.lang=='fr_FR' and u"Reste à payer:" or "To Paid:"}</b></td>
+                  <td style="text-align: right"><b>${inv.partner_id.lang=='fr_FR' and u"Reste à régler :" or "To Paid:"}</b></td>
                   <td class="amount">
                      <b>${formatLang(inv.residual, digits=get_digits(dp='Account'))} ${inv.currency_id.symbol}</b> 
                  </td>
