@@ -64,7 +64,7 @@
       </field>
     </record>
 
-    <record model="ir.ui.view" id="invoice_form_add_notes_in_invoice_line_1">
+<!--    <record model="ir.ui.view" id="invoice_form_add_notes_in_invoice_line_1">
       <field name="name">account.invoice.form.add.notes</field>
       <field name="model">account.invoice</field>
       <field name="inherit_id" ref="account.invoice_form"/>
@@ -84,7 +84,7 @@
           <attribute name="editable" eval="False"/>
         </xpath>
       </field>
-    </record>
+    </record> -->
 
     <record model="ir.ui.view" id="invoice_form_add_notes_in_invoice_line_2">
       <field name="name">account.invoice.form.add.notes</field>
